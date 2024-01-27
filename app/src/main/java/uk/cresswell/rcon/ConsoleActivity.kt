@@ -7,11 +7,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import nl.vv32.rcon.*;
 import kotlinx.coroutines.*
+import uk.cresswell.rcon.net.RconClient
 
 class ConsoleActivity() : AppCompatActivity() {
-    var rcon : Rcon? = null
+    var rcon : RconClient? = null
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private lateinit var server: Server
@@ -21,17 +21,11 @@ class ConsoleActivity() : AppCompatActivity() {
     fun connect() {
         coroutineScope.launch {
             try {
-                val rcon = Rcon.open(server.address, server.port)
-                if (rcon.authenticate(server.password)) {
-                    withContext(Dispatchers.Main) {
-                        consoleOutput.append("\n[Connected to ${server.name}]")
-                    }
-                    this@ConsoleActivity.rcon = rcon
-                } else {
-                    withContext(Dispatchers.Main) {
-                        consoleOutput.append("\n[Authentication failed]")
-                    }
+                val rcon = RconClient.open(server.address, server.port, server.password)
+                withContext(Dispatchers.Main) {
+                    consoleOutput.append("\n[Connected to ${server.name}]")
                 }
+                this@ConsoleActivity.rcon = rcon
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     consoleOutput.append("\n[Connection failed: ${e}]")
@@ -53,6 +47,8 @@ class ConsoleActivity() : AppCompatActivity() {
 
         fun sendInput() {
             val input = consoleInput.text.toString()
+            consoleOutput.append("\n> $input")
+            consoleInput.text.clear()
             coroutineScope.launch {
                 try {
                     var rcon = this@ConsoleActivity.rcon
@@ -65,10 +61,6 @@ class ConsoleActivity() : AppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             consoleOutput.append("\n< $response")
                         }
-                    }
-                    withContext(Dispatchers.Main) {
-                        consoleOutput.append("\n> $input")
-                        consoleInput.text.clear()
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
