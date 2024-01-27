@@ -6,6 +6,10 @@ package uk.cresswell.rcon
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.ContextMenu
+import android.view.MenuItem
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
@@ -30,6 +34,8 @@ class MainActivity : AppCompatActivity() {
         serverAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, serverList)
         serverListView.adapter = serverAdapter
 
+        registerForContextMenu(serverListView)
+
         // Initialize SharedPreferences
         sharedPreferences = getSharedPreferences("ServerList", MODE_PRIVATE)
 
@@ -50,6 +56,27 @@ class MainActivity : AppCompatActivity() {
             startActivity(consoleIntent)
         }
     }
+
+    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        menuInflater.inflate(R.menu.context_menu, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        val position = info.position
+
+        return when (item.itemId) {
+            R.id.delete_server -> {
+                serverList.removeAt(position)
+                serverAdapter.notifyDataSetChanged()
+                saveServerList()
+                true
+            }
+            else -> super.onContextItemSelected(item)
+        }
+    }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
