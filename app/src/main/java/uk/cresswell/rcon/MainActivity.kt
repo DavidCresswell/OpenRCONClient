@@ -38,6 +38,14 @@ class MainActivity : AppCompatActivity() {
             val addServerIntent = Intent(this, AddServerActivity::class.java)
             startActivityForResult(addServerIntent, ADD_SERVER_REQUEST)
         }
+
+        serverListView.setOnItemClickListener { _, _, position, _ ->
+            val selectedServer = serverList[position]
+        
+            val consoleIntent = Intent(this, ConsoleActivity::class.java)
+            consoleIntent.putExtra("selectedServer", selectedServer)
+            startActivity(consoleIntent)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -55,6 +63,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+
 
     private fun loadServerList() {
         val serverListJson = sharedPreferences.getString("serverList", null)

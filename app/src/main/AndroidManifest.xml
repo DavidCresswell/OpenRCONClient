@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -27,13 +29,19 @@
             android:name=".AddServerActivity"
             android:label="Add Server"
             android:exported="true"
-            android:theme="@style/Theme.RCONClient"> <!-- You can customize the label and theme -->
+            android:theme="@style/Theme.RCONClient">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Add ConsoleActivity here -->
+        <activity android:name=".ConsoleActivity"
+            android:label="Console"
+            android:exported="true"
+            android:theme="@style/Theme.RCONClient"
+         />
     </application>
 
 </manifest>
