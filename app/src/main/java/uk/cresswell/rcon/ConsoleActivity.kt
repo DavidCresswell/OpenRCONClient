@@ -1,11 +1,16 @@
+// Copyright (C) 2024 David Cresswell
+// Licensed under GPLv3
+
 package uk.cresswell.rcon
 
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.ScrollView
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
 import uk.cresswell.rcon.net.RconClient
@@ -17,24 +22,38 @@ class ConsoleActivity() : AppCompatActivity() {
     private lateinit var server: Server
     private lateinit var consoleInput: EditText
     private lateinit var consoleOutput: TextView
+    private lateinit var scrollView: ScrollView
+
+    fun appendAndScroll(text: String, format: String = "%s") {
+        if (text.isEmpty()) {
+            consoleOutput.append("\n" + format.format(""))
+        } else {
+            text.split("\n").forEach {
+                if (!it.isEmpty()) {
+                    consoleOutput.append("\n" + format.format(it))
+                }
+            }
+        }
+        scrollView.post { scrollView.fullScroll(View.FOCUS_DOWN) }
+    }
+
 
     fun connect() {
         coroutineScope.launch {
             try {
                 val rcon = RconClient.open(server.address, server.port, server.password)
                 withContext(Dispatchers.Main) {
-                    consoleOutput.append("\n[Connected to ${server.name}]")
+                    appendAndScroll("Connected to ${server.name}", "[%s]")
                 }
                 this@ConsoleActivity.rcon = rcon
             } catch (e: Exception) {
+                this@ConsoleActivity.rcon = null
                 withContext(Dispatchers.Main) {
-                    consoleOutput.append("\n[Connection failed: ${e}]")
+                    appendAndScroll("Connection failed: ${e}", "[%s]")
                 }
             }
         }
     }
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,12 +62,16 @@ class ConsoleActivity() : AppCompatActivity() {
 
         consoleOutput = findViewById(R.id.consoleOutput)
         consoleInput = findViewById(R.id.consoleInput)
+        scrollView = findViewById(R.id.scrollView)
         val sendButton: Button = findViewById(R.id.sendButton)
 
         fun sendInput() {
             val input = consoleInput.text.toString()
-            consoleOutput.append("\n> $input")
+            appendAndScroll("$input", "> %s")
             consoleInput.text.clear()
+            if (input.isEmpty()) {
+                return
+            }
             coroutineScope.launch {
                 try {
                     var rcon = this@ConsoleActivity.rcon
@@ -59,13 +82,15 @@ class ConsoleActivity() : AppCompatActivity() {
                     if (rcon != null) {
                         val response = rcon.sendCommand(input)
                         withContext(Dispatchers.Main) {
-                            consoleOutput.append("\n< $response")
+                            appendAndScroll("$response", "< %s")
                         }
                     }
                 } catch (e: Exception) {
+                    this@ConsoleActivity.rcon = null
                     withContext(Dispatchers.Main) {
-                        consoleOutput.append("\n[Error: ${e}]")
+                        appendAndScroll("Error: ${e}", "[%s]")
                     }
+                    connect()
                 }
             }
         }

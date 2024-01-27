@@ -12,4 +12,9 @@ public class AuthFailureException extends RconClientException {
     public AuthFailureException() {
         super("Authentication failure");
     }
+
+    @Override
+    public String toString() {
+        return getMessage();
+    }
 }

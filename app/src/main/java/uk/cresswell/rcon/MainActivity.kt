@@ -1,3 +1,6 @@
+// Copyright (C) 2024 David Cresswell
+// Licensed under GPLv3
+
 package uk.cresswell.rcon
 
 import android.content.Intent

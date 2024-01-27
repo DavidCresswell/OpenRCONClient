@@ -170,6 +170,9 @@ public class RconClient implements Closeable {
         int readCount;
         try {
             readCount = socketChannel.read(buffer);
+            if (readCount == -1) {
+                throw new RconClientException("Disconnected");
+            }
         } catch (IOException e) {
             throw new RconClientException("Failed to read " + size + " bytes", e);
         }

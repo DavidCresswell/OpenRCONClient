@@ -17,7 +17,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.RCONClient">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,19 +28,11 @@
             android:name=".AddServerActivity"
             android:label="Add Server"
             android:exported="true"
-            android:theme="@style/Theme.RCONClient">
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <!-- Add ConsoleActivity here -->
+            android:theme="@style/Theme.RCONClient" />
         <activity android:name=".ConsoleActivity"
             android:label="Console"
             android:exported="true"
-            android:theme="@style/Theme.RCONClient"
-         />
+            android:theme="@style/Theme.RCONClient" />
     </application>
 
 </manifest>

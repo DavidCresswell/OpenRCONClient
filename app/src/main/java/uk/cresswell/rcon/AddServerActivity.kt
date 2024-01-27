@@ -1,3 +1,6 @@
+// Copyright (C) 2024 David Cresswell
+// Licensed under GPLv3
+
 package uk.cresswell.rcon
 
 import android.os.Bundle
@@ -35,8 +38,6 @@ class AddServerActivity : AppCompatActivity() {
         val password: String = passwordEditText.text.toString()
 
         if (name.isEmpty() || address.isEmpty() || portStr.isEmpty() || password.isEmpty()) {
-            // Display an error message if any field is empty
-            // You can customize this part based on your requirements
             return
         }
 
@@ -44,7 +45,6 @@ class AddServerActivity : AppCompatActivity() {
 
         val newServer = Server(name, address, port, password)
 
-        // Pass the new server data back to the calling activity
         intent.putExtra("newServer", newServer)
         setResult(RESULT_OK, intent)
         finish()
