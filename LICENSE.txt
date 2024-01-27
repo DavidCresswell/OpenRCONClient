@@ -1,5 +1,4 @@
 Terminal icon created by Rahul Kaklotar - Flaticon - https://www.flaticon.com/free-icon/terminal_7991254
-RCON network code modified from https://github.com/t9t/minecraft-rcon-client to be compatible with non standard-compliant RCON servers
 
 The rest of the code is licensed under GPLv3
 

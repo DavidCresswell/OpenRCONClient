@@ -5,18 +5,18 @@ package uk.cresswell.rcon
 
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.inputmethod.EditorInfo
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.ScrollView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
 import uk.cresswell.rcon.net.RconClient
 
 class ConsoleActivity() : AppCompatActivity() {
-    var rcon : RconClient? = null
+    var rcon: RconClient? = null
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private lateinit var server: Server
@@ -37,19 +37,29 @@ class ConsoleActivity() : AppCompatActivity() {
         scrollView.post { scrollView.fullScroll(View.FOCUS_DOWN) }
     }
 
+    suspend fun connect(): RconClient? {
+        try {
+            val rcon = RconClient(server.address, server.port, server.password, ::callback)
+            rcon.start()
+            withContext(Dispatchers.Main) {
+                appendAndScroll("Connected to ${server.name}", "[%s]")
+            }
+            this@ConsoleActivity.rcon = rcon
+            return rcon
+        } catch (e: Exception) {
+            this@ConsoleActivity.rcon = null
+            withContext(Dispatchers.Main) { appendAndScroll("Connection failed: ${e}", "[%s]") }
+            return null
+        }
+    }
 
-    fun connect() {
+    fun callback(text: String, type: Int) {
         coroutineScope.launch {
-            try {
-                val rcon = RconClient.open(server.address, server.port, server.password)
-                withContext(Dispatchers.Main) {
-                    appendAndScroll("Connected to ${server.name}", "[%s]")
-                }
-                this@ConsoleActivity.rcon = rcon
-            } catch (e: Exception) {
-                this@ConsoleActivity.rcon = null
-                withContext(Dispatchers.Main) {
-                    appendAndScroll("Connection failed: ${e}", "[%s]")
+            if (type == 0) {
+                withContext(Dispatchers.Main) { appendAndScroll(text, "< %s") }
+            } else {
+                if (!text.isEmpty()) {
+                    withContext(Dispatchers.Main) { appendAndScroll(text, "[%s]") }
                 }
             }
         }
@@ -75,21 +85,13 @@ class ConsoleActivity() : AppCompatActivity() {
             coroutineScope.launch {
                 try {
                     var rcon = this@ConsoleActivity.rcon
-                    if (rcon == null) {
-                        connect()
-                        rcon = this@ConsoleActivity.rcon
+                    if (rcon == null || !rcon.isOpen) {
+                        rcon = connect()
                     }
-                    if (rcon != null) {
-                        val response = rcon.sendCommand(input)
-                        withContext(Dispatchers.Main) {
-                            appendAndScroll("$response", "< %s")
-                        }
-                    }
+                    rcon?.sendCommand(input)
                 } catch (e: Exception) {
                     this@ConsoleActivity.rcon = null
-                    withContext(Dispatchers.Main) {
-                        appendAndScroll("Error: ${e}", "[%s]")
-                    }
+                    withContext(Dispatchers.Main) { appendAndScroll("Error: ${e}", "[%s]") }
                     connect()
                 }
             }
@@ -98,13 +100,23 @@ class ConsoleActivity() : AppCompatActivity() {
         sendButton.setOnClickListener { sendInput() }
 
         consoleInput.setOnEditorActionListener { _, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_DONE || (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER)) {
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                            (event.action == KeyEvent.ACTION_DOWN &&
+                                    event.keyCode == KeyEvent.KEYCODE_ENTER)
+            ) {
                 sendInput()
                 true
             } else {
                 false
             }
         }
-        connect()
+        coroutineScope.launch {
+            connect()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        rcon?.close()
     }
 }
