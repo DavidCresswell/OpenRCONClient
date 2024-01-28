@@ -94,9 +94,16 @@ class RconClient(
                     val responseType = packet.int
                     val body = ByteArray(length - 10)
                     packet.get(body)
-                    val response = String(body, Charsets.UTF_8)
+                    var response = String(body, Charsets.UTF_8)
                     if (responseType == 2) {
                         isReady = true
+                    }
+                    if (requestId == -1) {
+                        if (response.isEmpty()) {
+                            response = "Login failed"
+                        } else {
+                            response = "Login failed: $response"
+                        }
                     }
                     // call callback
                     callback(response, responseType)
