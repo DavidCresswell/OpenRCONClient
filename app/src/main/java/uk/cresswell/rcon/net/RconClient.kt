@@ -21,6 +21,8 @@ class RconClient(
     private var currentRequestId = 1
     var isOpen = false
         private set
+    var isReady = false
+        private set
 
     // input stream
     private val inputStream = socket.getInputStream()
@@ -93,6 +95,9 @@ class RconClient(
                     val body = ByteArray(length - 10)
                     packet.get(body)
                     val response = String(body, Charsets.UTF_8)
+                    if (responseType == 2) {
+                        isReady = true
+                    }
                     // call callback
                     callback(response, responseType)
                 }

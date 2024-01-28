@@ -34,7 +34,7 @@ class ConsoleActivity() : AppCompatActivity() {
                 }
             }
         }
-        scrollView.post { scrollView.fullScroll(View.FOCUS_DOWN) }
+        scrollView.post { scrollView.smoothScrollBy(0, scrollView.getChildAt(0).height) }
     }
 
     suspend fun connect(): RconClient? {
@@ -77,7 +77,6 @@ class ConsoleActivity() : AppCompatActivity() {
 
         fun sendInput() {
             val input = consoleInput.text.toString()
-            appendAndScroll("$input", "> %s")
             consoleInput.text.clear()
             if (input.isEmpty()) {
                 return
@@ -85,10 +84,23 @@ class ConsoleActivity() : AppCompatActivity() {
             coroutineScope.launch {
                 try {
                     var rcon = this@ConsoleActivity.rcon
-                    if (rcon == null || !rcon.isOpen) {
+                    if (rcon == null || !rcon.isOpen || !rcon.isReady) {
                         rcon = connect()
+                        if (rcon == null) {
+                            appendAndScroll("$input", "? %s")
+                            return@launch
+                        }
+                        // wait until connection is ready
+                        while (!rcon.isReady) {
+                            delay(100)
+                            if (!rcon.isOpen) {
+                                appendAndScroll("$input", "? %s")
+                                return@launch
+                            }
+                        }
                     }
-                    rcon?.sendCommand(input)
+                    withContext(Dispatchers.Main) { appendAndScroll("$input", "> %s") }
+                    rcon.sendCommand(input)
                 } catch (e: Exception) {
                     this@ConsoleActivity.rcon = null
                     withContext(Dispatchers.Main) { appendAndScroll("Error: ${e}", "[%s]") }
