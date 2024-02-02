@@ -68,7 +68,7 @@ class RconClient(
                         val thisRead = inputStream.read(lengthBytes, readCount, 4 - readCount)
                         if (thisRead == -1) {
                             isOpen = false
-                            callback("Connection Closed", -2)
+                            callback("Server closed connection", -2)
                             return@launch
                         }
                         readCount += thisRead

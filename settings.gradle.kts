@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "RCONClient"
+rootProject.name = "OpenRCON"
 include(":app")
